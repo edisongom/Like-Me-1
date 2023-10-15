@@ -20,8 +20,7 @@ const executeQuery = async (query, values) =>
     .catch(({ code, message }) => ({ code, message }));
 
 const readPosts = async () => {
-  const dbResponse = await executeQuery("SELECT * FROM posts ORDER BY titulo;");
-  return dbResponse;
+  return await executeQuery("SELECT * FROM posts ORDER BY titulo;");
 };
 
 const createPosts = async ({ titulo, url: img, descripcion }) => {
@@ -31,7 +30,28 @@ const createPosts = async ({ titulo, url: img, descripcion }) => {
   return await executeQuery(query, postValues);
 };
 
+const updatePost = async (id, { titulo, url: img, descripcion }) => {
+  const query =
+    "UPDATE posts set titulo = $2, img = $3, descripcion = $4 WHERE id = $1 RETURNING *;";
+  const values = [id, titulo, img, descripcion];
+  return await executeQuery(query, values);
+};
+
+const deletePost = async (id) => {
+  return await executeQuery("DELETE FROM posts WHERE id = $1 RETURNING *;", [
+    id,
+  ]);
+};
+
+const updateLike = async (id) => {
+  const query = `UPDATE posts SET likes = COALESCE(likes, 0) + 1 WHERE id = $1 RETURNING *;`;
+  return await executeQuery(query, [id]);
+};
+
 module.exports = {
   readPosts,
   createPosts,
+  updatePost,
+  deletePost,
+  updateLike,
 };
